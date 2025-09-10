@@ -18,8 +18,6 @@ class CanvasPanel extends JComponent {
     CanvasPanel() {
         setOpaque(true);
         setBackground(new Color(45, 45, 45));
-
-        // Mouse interaction
         MouseAdapter ma = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -87,8 +85,6 @@ class CanvasPanel extends JComponent {
             updateStatus(null);
         }
     }
-
-    // --- Zoom ---
     void zoomIn() {
         setScale(scale * 1.1);
     }
@@ -118,7 +114,6 @@ class CanvasPanel extends JComponent {
         }
     }
 
-    // --- Component sizing ---
     @Override
     public Dimension getPreferredSize() {
         return image == null
@@ -129,7 +124,6 @@ class CanvasPanel extends JComponent {
         );
     }
 
-    // --- Painting ---
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -157,7 +151,7 @@ class CanvasPanel extends JComponent {
         g2.dispose();
     }
 
-    // --- Helpers ---
+  
     private Rectangle rect(Point p1, Point p2) {
         int x = Math.min(p1.x, p2.x);
         int y = Math.min(p1.y, p2.y);
