@@ -190,7 +190,6 @@ class CanvasPanel extends JComponent {
         }
     }
 
-    // Add to CanvasPanel.java
     Rectangle getSelectionImageSpace() {
         if (selection == null || image == null) return null;
         int x = (int) (selection.x / scale);
@@ -198,7 +197,6 @@ class CanvasPanel extends JComponent {
         int w = (int) (selection.width / scale);
         int h = (int) (selection.height / scale);
 
-        // Clamp to image bounds
         x = Math.max(0, x);
         y = Math.max(0, y);
         if (x + w > image.getWidth()) w = image.getWidth() - x;
