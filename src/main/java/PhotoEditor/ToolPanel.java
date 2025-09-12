@@ -4,9 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
-/**
- * Tool panel containing buttons for editing actions (crop, rotate, filters, etc.)
- */
+
 class ToolPanel extends JPanel {
 
     ToolPanel(CanvasPanel canvas, HistoryManager history, EditorFrame frame) {
@@ -25,7 +23,6 @@ class ToolPanel extends JPanel {
         add(createButton("Reset", () -> resetImage(canvas, history)));
     }
 
-    // --- Helpers ---
 
     private JButton createButton(String label, Runnable action) {
         JButton button = new JButton(label);
