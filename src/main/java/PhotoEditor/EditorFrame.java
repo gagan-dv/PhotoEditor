@@ -8,49 +8,40 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-/**
- * Main window for the Mini Photoshop editor.
- * Handles menus, file operations, and the layout of editor components.
- */
 class EditorFrame extends JFrame {
 
-    // Core components
     private final CanvasPanel canvas = new CanvasPanel();
     private final HistoryManager history = new HistoryManager();
     private final StatusBar statusBar = new StatusBar();
     private final JFileChooser chooser = new JFileChooser();
 
-    /**
-     * Constructor initializes the editor UI.
-     */
+  
     EditorFrame() {
         super("Mini Photoshop – Swing");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(1100, 720));
         setLocationByPlatform(true);
 
-        // Configure file chooser
+     
         chooser.setFileFilter(
                 new FileNameExtensionFilter("Image Files", "png", "jpg", "jpeg", "bmp", "gif")
         );
 
-        // Layout
+
         setLayout(new BorderLayout());
         add(new JScrollPane(canvas), BorderLayout.CENTER);
         add(new ToolPanel(canvas, history, this), BorderLayout.WEST);
         add(new PropertiesPanel(canvas, history), BorderLayout.EAST);
         add(statusBar, BorderLayout.SOUTH);
 
-        // Link canvas and status bar
+      
         canvas.setStatusBar(statusBar);
 
-        // Build menu bar
+       
         setJMenuBar(buildMenuBar());
     }
 
-    /**
-     * Opens an image selected by the user.
-     */
+  
     private void doOpen() {
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             try {
@@ -67,7 +58,7 @@ class EditorFrame extends JFrame {
                     return;
                 }
 
-                // Load into canvas and reset history
+             
                 canvas.setImage(img);
                 history.clear();
                 history.push(Utils.deepCopy(img));
@@ -80,9 +71,7 @@ class EditorFrame extends JFrame {
         }
     }
 
-    /**
-     * Saves the current image to a file chosen by the user.
-     */
+    
     private void doSaveAs() {
         if (canvas.getImage() == null) {
             JOptionPane.showMessageDialog(this, "No image to save.");
@@ -104,13 +93,10 @@ class EditorFrame extends JFrame {
         }
     }
 
-    /**
-     * Build the application menu bar.
-     */
+   
     private JMenuBar buildMenuBar() {
         JMenuBar bar = new JMenuBar();
 
-        // --- File menu
         JMenu fileMenu = new JMenu("File");
         fileMenu.setMnemonic('F');
 
@@ -132,7 +118,6 @@ class EditorFrame extends JFrame {
         fileMenu.addSeparator();
         fileMenu.add(exit);
 
-        // --- Edit menu
         JMenu editMenu = new JMenu("Edit");
 
         JMenuItem undo = new JMenuItem("Undo");
@@ -152,16 +137,14 @@ class EditorFrame extends JFrame {
         editMenu.addSeparator();
         editMenu.add(reset);
 
-        // Add menus to bar
+     
         bar.add(fileMenu);
         bar.add(editMenu);
 
         return bar;
     }
 
-    /**
-     * Utility: Detect extension from filename (default: png).
-     */
+   
     private String detectExtension(String name) {
         String lower = name.toLowerCase();
         if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "jpg";
@@ -170,9 +153,7 @@ class EditorFrame extends JFrame {
         return "png"; // default
     }
 
-    /**
-     * Utility: Show error dialog and log.
-     */
+   
     private void showError(String msg, Exception ex) {
         ex.printStackTrace();
         JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
