@@ -2,14 +2,13 @@ package PhotoEditor;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
 class CanvasPanel extends JComponent {
     private BufferedImage image;
-    private BufferedImage originalImage; // for reset
+    private BufferedImage originalImage;
+    private BufferedImage checkerboard;
     private double scale = 1.0;
     private Rectangle selection;
     private Point dragStart;
@@ -18,6 +17,7 @@ class CanvasPanel extends JComponent {
     CanvasPanel() {
         setOpaque(true);
         setBackground(new Color(45, 45, 45));
+
         MouseAdapter ma = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -29,7 +29,7 @@ class CanvasPanel extends JComponent {
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (dragStart != null) {
-                    selection = rect(dragStart, e.getPoint());
+                    selection = createRectangle(dragStart, e.getPoint());
                     repaint();
                     updateStatus(e.getPoint());
                 }
@@ -48,8 +48,7 @@ class CanvasPanel extends JComponent {
 
             @Override
             public void mouseWheelMoved(MouseWheelEvent e) {
-                if (e.getWheelRotation() < 0) zoomIn();
-                else zoomOut();
+                adjustZoom(e.getWheelRotation() < 0 ? 1.1 : 1 / 1.1);
             }
         };
 
@@ -58,7 +57,6 @@ class CanvasPanel extends JComponent {
         addMouseWheelListener(ma);
     }
 
-    // --- Image handling ---
     void setStatusBar(StatusBar sb) {
         this.statusBar = sb;
     }
@@ -66,9 +64,8 @@ class CanvasPanel extends JComponent {
     void setImage(BufferedImage img) {
         this.image = Utils.toARGB(img);
         this.originalImage = Utils.deepCopy(img);
-        revalidate();
-        repaint();
-        updateStatus(null);
+        generateCheckerboard();
+        resetView();
     }
 
     BufferedImage getImage() {
@@ -78,19 +75,8 @@ class CanvasPanel extends JComponent {
     void resetImage() {
         if (originalImage != null) {
             this.image = Utils.deepCopy(originalImage);
-            selection = null;
-            scale = 1.0;
-            revalidate();
-            repaint();
-            updateStatus(null);
+            resetView();
         }
-    }
-    void zoomIn() {
-        setScale(scale * 1.1);
-    }
-
-    void zoomOut() {
-        setScale(scale / 1.1);
     }
 
     void zoomToFit() {
@@ -101,17 +87,57 @@ class CanvasPanel extends JComponent {
         if (vp.width == 0 || vp.height == 0) return;
         double sx = vp.width / (double) image.getWidth();
         double sy = vp.height / (double) image.getHeight();
-        setScale(Math.max(0.05, Math.min(sx, sy)));
+        adjustZoom(Math.min(sx, sy));
     }
 
-    private void setScale(double s) {
-        s = Math.max(0.05, Math.min(10, s));
-        if (Math.abs(s - scale) > 1e-6) {
-            scale = s;
+    Rectangle getSelectionImageSpace() {
+        if (selection == null || image == null) return null;
+        Rectangle scaled = new Rectangle(
+                (int) (selection.x / scale),
+                (int) (selection.y / scale),
+                (int) (selection.width / scale),
+                (int) (selection.height / scale)
+        );
+        scaled = scaled.intersection(new Rectangle(0, 0, image.getWidth(), image.getHeight()));
+        return (scaled.width > 0 && scaled.height > 0) ? scaled : null;
+    }
+
+    void clearSelection() {
+        selection = null;
+        repaint();
+    }
+
+    private void resetView() {
+        selection = null;
+        scale = 1.0;
+        revalidate();
+        repaint();
+        updateStatus(null);
+    }
+
+    private void adjustZoom(double factor) {
+        double newScale = Math.max(0.05, Math.min(10, scale * factor));
+        if (Math.abs(newScale - scale) > 1e-6) {
+            scale = newScale;
             revalidate();
             repaint();
             updateStatus(null);
         }
+    }
+
+    private void generateCheckerboard() {
+        int size = 20;
+        checkerboard = new BufferedImage(size * 2, size * 2, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = checkerboard.createGraphics();
+        Color c1 = new Color(200, 200, 200);
+        Color c2 = new Color(150, 150, 150);
+        g.setColor(c1);
+        g.fillRect(0, 0, size, size);
+        g.fillRect(size, size, size, size);
+        g.setColor(c2);
+        g.fillRect(size, 0, size, size);
+        g.fillRect(0, size, size, size);
+        g.dispose();
     }
 
     @Override
@@ -128,11 +154,15 @@ class CanvasPanel extends JComponent {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g.create();
-
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-        paintChecker(g2, getWidth(), getHeight());
+        if (checkerboard != null) {
+            TexturePaint paint = new TexturePaint(checkerboard,
+                    new Rectangle(0, 0, checkerboard.getWidth(), checkerboard.getHeight()));
+            g2.setPaint(paint);
+            g2.fillRect(0, 0, getWidth(), getHeight());
+        }
 
         if (image != null) {
             int iw = (int) Math.round(image.getWidth() * scale);
@@ -151,8 +181,7 @@ class CanvasPanel extends JComponent {
         g2.dispose();
     }
 
-  
-    private Rectangle rect(Point p1, Point p2) {
+    private Rectangle createRectangle(Point p1, Point p2) {
         int x = Math.min(p1.x, p2.x);
         int y = Math.min(p1.y, p2.y);
         int w = Math.abs(p1.x - p2.x);
@@ -177,37 +206,4 @@ class CanvasPanel extends JComponent {
             statusBar.setMessage("Image size: " + image.getWidth() + "x" + image.getHeight());
         }
     }
-
-    private void paintChecker(Graphics2D g, int w, int h) {
-        int size = 10;
-        Color c1 = new Color(200, 200, 200);
-        Color c2 = new Color(150, 150, 150);
-        for (int y = 0; y < h; y += size) {
-            for (int x = 0; x < w; x += size) {
-                g.setColor(((x / size + y / size) % 2 == 0) ? c1 : c2);
-                g.fillRect(x, y, size, size);
-            }
-        }
-    }
-
-    Rectangle getSelectionImageSpace() {
-        if (selection == null || image == null) return null;
-        int x = (int) (selection.x / scale);
-        int y = (int) (selection.y / scale);
-        int w = (int) (selection.width / scale);
-        int h = (int) (selection.height / scale);
-
-        x = Math.max(0, x);
-        y = Math.max(0, y);
-        if (x + w > image.getWidth()) w = image.getWidth() - x;
-        if (y + h > image.getHeight()) h = image.getHeight() - y;
-
-        return (w > 0 && h > 0) ? new Rectangle(x, y, w, h) : null;
-    }
-
-    void clearSelection() {
-        selection = null;
-        repaint();
-    }
-
 }
