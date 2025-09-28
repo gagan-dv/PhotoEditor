@@ -3,12 +3,9 @@ package PhotoEditor;
 import javax.swing.*;
 import java.awt.*;
 
- Cursor position and color values
-
 class StatusBar extends JPanel {
-
-    private final JLabel zoomLabel   = new JLabel("100%");
-    private final JLabel sizeLabel   = new JLabel("–");
+    private final JLabel zoomLabel = new JLabel("100%");
+    private final JLabel sizeLabel = new JLabel("–");
     private final JLabel cursorLabel = new JLabel("–");
 
     StatusBar() {
@@ -20,7 +17,6 @@ class StatusBar extends JPanel {
         add(createField("Cursor:", cursorLabel));
     }
 
-  
     private JPanel createField(String name, JLabel value) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         panel.add(new JLabel(name));
@@ -32,14 +28,13 @@ class StatusBar extends JPanel {
         cursorLabel.setText(text);
     }
 
-  
     void update(String zoomText, String sizeText, String cursorText) {
         zoomLabel.setText(zoomText);
         sizeLabel.setText(sizeText);
         cursorLabel.setText(cursorText);
     }
 
-    void setZoom(String zoomText)     { zoomLabel.setText(zoomText); }
-    void setSize(String sizeText)     { sizeLabel.setText(sizeText); }
+    void setZoom(String zoomText) { zoomLabel.setText(zoomText); }
+    void setSize(String sizeText) { sizeLabel.setText(sizeText); }
     void setCursor(String cursorText) { cursorLabel.setText(cursorText); }
 }
