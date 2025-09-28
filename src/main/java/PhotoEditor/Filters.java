@@ -4,22 +4,11 @@ import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.geom.AffineTransform;
 import java.awt.image.*;
-
-/**
- * Utility class providing various image filters and transformations.
- */
 class Filters {
-
-    /**
-     * Functional interface for image operations.
-     */
     interface Op {
         BufferedImage apply(BufferedImage src);
     }
 
-    /**
-     * Convert an image to grayscale.
-     */
     static BufferedImage toGrayscale(BufferedImage src) {
         ColorConvertOp op = new ColorConvertOp(
                 ColorSpace.getInstance(ColorSpace.CS_GRAY), null
@@ -30,10 +19,6 @@ class Filters {
         op.filter(src, out);
         return out;
     }
-
-    /**
-     * Apply sepia tone effect.
-     */
     static BufferedImage toSepia(BufferedImage src) {
         BufferedImage out = Utils.deepCopy(src);
         int w = out.getWidth(), h = out.getHeight();
@@ -54,10 +39,6 @@ class Filters {
         out.setRGB(0, 0, w, h, pixels, 0, w);
         return out;
     }
-
-    /**
-     * Apply 3x3 blur filter.
-     */
     static BufferedImage blur3x3(BufferedImage src) {
         float[] kernel = {
                 1 / 9f, 1 / 9f, 1 / 9f,
@@ -66,10 +47,6 @@ class Filters {
         };
         return convolve(src, kernel);
     }
-
-    /**
-     * Apply 3x3 sharpen filter.
-     */
     static BufferedImage sharpen3x3(BufferedImage src) {
         float[] kernel = {
                 0, -1, 0,
@@ -79,9 +56,6 @@ class Filters {
         return convolve(src, kernel);
     }
 
-    /**
-     * Rotate an image around its center.
-     */
     static BufferedImage rotate(BufferedImage src, double radians) {
         double sin = Math.abs(Math.sin(radians));
         double cos = Math.abs(Math.cos(radians));
@@ -105,9 +79,6 @@ class Filters {
         return out;
     }
 
-    /**
-     * Flip image horizontally.
-     */
     static BufferedImage flipHorizontal(BufferedImage src) {
         int w = src.getWidth(), h = src.getHeight();
         BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
@@ -116,10 +87,6 @@ class Filters {
         g.dispose();
         return out;
     }
-
-    /**
-     * Flip image vertically.
-     */
     static BufferedImage flipVertical(BufferedImage src) {
         int w = src.getWidth(), h = src.getHeight();
         BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
@@ -128,10 +95,6 @@ class Filters {
         g.dispose();
         return out;
     }
-
-    /**
-     * Adjust brightness, contrast, and saturation.
-     */
     static BufferedImage adjust(BufferedImage src, int brightness, int contrast, int saturation) {
         BufferedImage out = Utils.deepCopy(src);
         int w = out.getWidth(), h = out.getHeight();
@@ -166,10 +129,6 @@ class Filters {
         out.setRGB(0, 0, w, h, pixels, 0, w);
         return out;
     }
-
-    /**
-     * Convolve image with a 3x3 kernel.
-     */
     private static BufferedImage convolve(BufferedImage src, float[] kernel) {
         Kernel k = new Kernel(3, 3, kernel);
         ConvolveOp op = new ConvolveOp(k, ConvolveOp.EDGE_NO_OP, null);
